@@ -13,8 +13,13 @@ class UnrealScriptFile():
             raise RuntimeError( self.file + ' is not an unrealscript file!' )
 
         self.content = None
-        with open(self.file) as f:
-            self.content = f.read()
+        with open(self.file, 'rb') as f:
+            data = f.read()
+            if data[:2] == b'\xfe\xff' or data[:2] == b'\xff\xfe': # 'ÿþ'
+                self.content = data.decode('utf-16', 'replace')
+                data = self.content.encode('utf-8', 'replace')
+            self.content = data.decode('ansi', 'replace')
+            self.content = self.content.replace('\r\n', '\n')
         self.content = preprocessor.preprocessor(self.content, definitions)
         self.content_no_comments = self.strip_comments(self.content)
         self.classline = self.get_class_line(self.content_no_comments)
@@ -57,7 +62,7 @@ class UnrealScriptFile():
         if classline is not None:
             classline = classline.group(0)
         else:
-            print(content)
+            print(content[:5000])
             raise RuntimeError('Could not find classline')
         return classline
 
