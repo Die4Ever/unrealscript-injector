@@ -24,6 +24,8 @@ def before_write(mod, f, injects):
 
     debug(indent('modifying children...'))
     for t in mod.values():
+        if type(t).__name__ != 'UnrealScriptFile':
+            continue
         if t in injects or t.baseclass != orig_base:
             continue
         debug(indent('shimming between '+t.classname+' and '+baseclass+' and '+orig_base))

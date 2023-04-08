@@ -100,20 +100,23 @@ def write_file(out, f, written, injects):
 
     write = True
 
-    if f.qualifiedclass in injects:
-        write = execute_injections(f, injects)
-
-    if f.operator:
-        write = handle_inheritance_operator(f, injects)
+    if type(f).__name__ == 'UnrealScriptFile':
+        if f.qualifiedclass in injects:
+            write = execute_injections(f, injects)
+        if f.operator:
+            write = handle_inheritance_operator(f, injects)
 
     if not write:
         debug("not writing "+f.file)
         return
 
-    path = pathlib.PurePath(out, f.namespace, 'Classes')
+    path = pathlib.PurePath(out, f.namespace, f.type)
     if not exists_dir(path):
         os.makedirs(path, exist_ok=True)
-    path = path / ( f.classname+'.uc' )
+    if type(f).__name__ == 'UnrealScriptFile':
+        path = path / ( f.classname+'.uc' )
+    else:
+        path = path / f.filename
 
     written[f.file] = 1
     written[str(path)] = 1
@@ -132,7 +135,7 @@ def write_file(out, f, written, injects):
 
 def cleanup(out, written):
     for file in insensitive_glob(out+'*'):
-        if not is_uc_file(file):
+        if not is_uc_file(file):# TODO: cleanup text files...
             continue
         path = pathlib.PurePath(file)
         if str(path) in written:

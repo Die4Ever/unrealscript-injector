@@ -65,7 +65,7 @@ def prependException(e, msg):
 def appendException(e, msg):
     if not e.args:
         e.args = ("",)
-    e.args = (e.args[0] + " \n" + msg,) + e.args[1:]
+    e.args = (str(e.args[0]) + " \n" + str(msg),) + e.args[1:]
 
 def printError(e):
     print(WARNING+e+ENDCOLOR)
@@ -169,12 +169,13 @@ def is_uc_file(file):
         return False
     filename = path[-1]
     namespace = path[-3]
+    type = path[-2]
     parent = None
     if len(path) > 3:
         parent = path[-4]
-    if path[-2] != 'Classes':
+    if type != 'Classes':
         return False
     if not path[-1].endswith('.uc'):
         return False
 
-    return True, filename, namespace, parent
+    return True, filename, namespace, parent, type

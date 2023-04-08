@@ -1,6 +1,36 @@
 # read and parse UC files
 from compiler.base import *
 
+class TextFile():
+    def __init__(self, mod_name, file, filename, namespace, type):
+        self.file = file
+        self.mod_name = mod_name
+        self.filename = filename
+        self.namespace = namespace
+        self.type = type
+        self.content = None
+        with open(self.file, 'rb') as f:
+            data = f.read()
+            if data[:2] == b'\xfe\xff' or data[:2] == b'\xff\xfe': # 'ÿþ'
+                self.content = data.decode('utf-16', 'replace')
+                data = self.content.encode('utf-8', 'replace')
+            self.content = data.decode('ansi', 'replace')
+            self.content = self.content.replace('\r\n', '\n')
+
+    @staticmethod
+    def ReadTextFile(mod_name, file):
+        path = list(Path(file).parts)
+        if len(path) <3:
+            return None
+        filename = path[-1]
+        namespace = path[-3]
+        type = path[-2]
+        if type != 'Text' or not filename.endswith('.txt'):
+            return None
+
+        return TextFile(mod_name, file, filename, namespace, type)
+
+
 class UnrealScriptFile():
     def __init__(self, mod_name, file, preprocessor, definitions):
         self.file = file
@@ -8,7 +38,7 @@ class UnrealScriptFile():
         self.read_file(preprocessor, definitions)
 
     def read_file(self, preprocessor, definitions):
-        success, self.filename, self.namespace, self.parentfolder = is_uc_file(self.file)
+        success, self.filename, self.namespace, self.parentfolder, self.type = is_uc_file(self.file)
         if not success:
             raise RuntimeError( self.file + ' is not an unrealscript file!' )
 
@@ -81,7 +111,11 @@ def read_uc_file(mod_name, file, preprocessor, definitions):
 def proc_file(file, files, mod_name, injects, preprocessor, definitions):
     debug("Processing "+file+" from "+mod_name)
     if not is_uc_file(file):
-        return
+        f = TextFile.ReadTextFile(mod_name, file)
+        if f is None:
+            return
+        files[file] = f
+        return f
 
     if not hasattr(proc_file,"last_folder"):
         proc_file.last_folder=""
