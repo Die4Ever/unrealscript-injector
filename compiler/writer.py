@@ -123,15 +123,23 @@ def write_file(out, f, written, injects):
 
     if exists(path):
         oldcontent = None
-        with open(path) as file:
-            oldcontent = file.read()
+        if f.binary:
+            with open(path, 'rb') as file:
+                oldcontent = file.read()
+        else:
+            with open(path, 'r') as file:
+                oldcontent = file.read()
         if oldcontent == f.content:
             return
 
     debug("writing from: "+f.file+" to: "+str(path))
     debug("")
-    with open(path, 'w') as file:
-        file.write(f.content)
+    if f.binary:
+        with open(path, 'wb') as file:
+            file.write(f.content)
+    else:
+        with open(path, 'w') as file:
+            file.write(f.content)
 
 def cleanup(out, written):
     for file in insensitive_glob(out+'*'):

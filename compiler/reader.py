@@ -1,7 +1,7 @@
 # read and parse UC files
 from compiler.base import *
 
-class TextFile():
+class OtherFile():
     def __init__(self, mod_name, file, filename, namespace, type):
         self.file = file
         self.mod_name = mod_name
@@ -11,30 +11,33 @@ class TextFile():
         self.content = None
         with open(self.file, 'rb') as f:
             data = f.read()
-            if data[:2] == b'\xfe\xff' or data[:2] == b'\xff\xfe': # 'ÿþ'
-                self.content = data.decode('utf-16', 'replace')
-                data = self.content.encode('utf-8', 'replace')
-            self.content = data.decode('ansi', 'replace')
-            self.content = self.content.replace('\r\n', '\n')
+            self.binary = False
+            if filename.endswith('.txt'):
+                if data[:2] == b'\xfe\xff' or data[:2] == b'\xff\xfe': # 'ÿþ'
+                    self.content = data.decode('utf-16', 'replace')
+                    data = self.content.encode('utf-8', 'replace')
+                self.content = data.decode('ansi', 'replace')
+                self.content = self.content.replace('\r\n', '\n')
+            else:
+                self.content = data
+                self.binary = True
 
     @staticmethod
-    def ReadTextFile(mod_name, file):
+    def ReadOtherFile(mod_name, file):
         path = list(Path(file).parts)
         if len(path) <3:
             return None
         filename = path[-1]
         namespace = path[-3]
         type = path[-2]
-        if type != 'Text' or not filename.endswith('.txt'):
-            return None
-
-        return TextFile(mod_name, file, filename, namespace, type)
+        return OtherFile(mod_name, file, filename, namespace, type)
 
 
 class UnrealScriptFile():
     def __init__(self, mod_name, file, preprocessor, definitions):
         self.file = file
         self.mod_name = mod_name
+        self.binary = False
         self.read_file(preprocessor, definitions)
 
     def read_file(self, preprocessor, definitions):
@@ -110,8 +113,10 @@ def read_uc_file(mod_name, file, preprocessor, definitions):
 
 def proc_file(file, files, mod_name, injects, preprocessor, definitions):
     debug("Processing "+file+" from "+mod_name)
+    if not exists(file):
+        return
     if not is_uc_file(file):
-        f = TextFile.ReadTextFile(mod_name, file)
+        f = OtherFile.ReadOtherFile(mod_name, file)
         if f is None:
             return
         files[file] = f
