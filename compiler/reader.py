@@ -30,7 +30,9 @@ class OtherFile():
         filename = path[-1]
         namespace = path[-3]
         type = path[-2]
-        return OtherFile(mod_name, file, filename, namespace, type)
+        if filename.endswith('.txt') or filename.endswith('.pcx'):
+            return OtherFile(mod_name, file, filename, namespace, type)
+        return None
 
 
 class UnrealScriptFile():
