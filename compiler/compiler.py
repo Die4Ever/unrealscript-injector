@@ -94,7 +94,7 @@ def compile(args, settings):
     if 'source_path' in settings:
         source = settings['source_path']
     mods = settings['mods_paths']
-    out = settings['out_dir']
+    out_dir = settings['out_dir']
     definitions = settings['preproc_definitions']
     packages = settings['packages']
     rewrite_packages = {}
@@ -132,7 +132,7 @@ def compile(args, settings):
     for file in orig_files.values():
         try:
             debug("Writing file "+str(file.file))
-            writer.write_file(out, file, written, injects)
+            writer.write_file(out_dir, file, written, injects)
         except Exception as e:
             appendException(e, "error writing vanilla file "+str(file.file))
             raise
@@ -147,7 +147,7 @@ def compile(args, settings):
         for file in mod.values():
             debug("Writing mod file "+str(file.file))
             try:
-                writer.write_file(out, file, written, injects)
+                writer.write_file(out_dir, file, written, injects)
             except Exception as e:
                 appendException(e, "error writing mod file "+str(file.file))
                 raise
@@ -155,28 +155,35 @@ def compile(args, settings):
     if dryrun:
         return 1
 
-    writer.cleanup(out, written)
+    writer.cleanup(out_dir, written)
 
     # now we need to delete DeusEx.u otherwise it won't get recompiled, might want to consider support for other packages too
     for package in packages:
-        file = package+'.u'
-        if exists(out + '/System/'+file):
+        file = out_dir + '/System/'+package+'.u'
+        if exists(file):
             notice("Removing old "+file)
-            os.remove(out + '/System/'+file)
+            os.remove(file)
 
     # can set a custom ini file ucc make INI=ProBob.ini https://www.oldunreal.com/wiki/index.php?title=Working_with_*.uc%27s
     # I can run automated tests like ucc Core.HelloWorld
-    if not exists_dir(out + '/DeusEx/Inc'):
-        os.makedirs(out + '/DeusEx/Inc', exist_ok=True)
+    if not exists_dir(out_dir + '/DeusEx/Inc'):
+        os.makedirs(out_dir + '/DeusEx/Inc', exist_ok=True)
     # also we can check UCC.log for success or just the existence of DeusEx.u
     ret = 1
-    (ret, out, errs) = call([ out + '/System/ucc', 'make', '-h', '-NoBind', '-Silent' ])
+    (ret, out, errs) = call([ out_dir + '/System/ucc', 'make', '-h', '-NoBind', '-Silent' ])
     warnings = []
     re_terrorist = re.compile(r'((Parsing)|(Compiling)) (([\w\d_]*Terrorist\w*)|(AmmoNone))')
     for line in errs.splitlines():
         if not re_terrorist.match(line):
             warnings.append(line)
-    # if ret != 0 we should show the end of UCC.log, we could also keep track of compiler warnings to show at the end after the test results
+
+    # TODO: if ret != 0 we should show the end of UCC.log, we could also keep track of compiler warnings to show at the end after the test results
+
+    for package in packages:
+        file = out_dir + '/System/'+package+'.u'
+        if not exists(file):
+            raise RuntimeError("could not find file after compiling: "+file)
+
     return (ret, warnings)
 
 
