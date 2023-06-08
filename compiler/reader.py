@@ -1,6 +1,8 @@
 # read and parse UC files
 from compiler.base import *
 
+subclasses = dict()
+
 class OtherFile():
     def __init__(self, mod_name, file, filename, namespace, type):
         self.file = file
@@ -43,6 +45,7 @@ class UnrealScriptFile():
         self.read_file(preprocessor, definitions)
 
     def read_file(self, preprocessor, definitions):
+        global subclasses
         success, self.filename, self.namespace, self.parentfolder, self.type = is_uc_file(self.file)
         if not success:
             raise RuntimeError( self.file + ' is not an unrealscript file!' )
@@ -66,6 +69,9 @@ class UnrealScriptFile():
             self.classname = inheritance.group('classname')
             self.operator = inheritance.group('operator')
             self.baseclass = inheritance.group('baseclass')
+            a = subclasses.get(self.baseclass, [])
+            a.append(self.classname)
+            subclasses[self.baseclass] = a
         else:
             RuntimeError(self.file+" couldn't read class definition")
 
@@ -143,3 +149,11 @@ def proc_file(file, files, mod_name, injects, preprocessor, definitions):
     files[f.qualifiedclass] = f
     return f
 
+
+def GetSubclasses(baseclass: str) -> list:
+    global subclasses
+    ret = []
+    for c in subclasses.get(baseclass, []):
+        ret.append(c)
+        ret.extend(GetSubclasses(c))
+    return ret

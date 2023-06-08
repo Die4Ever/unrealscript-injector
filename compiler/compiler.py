@@ -112,6 +112,11 @@ def compile(args, settings):
             except Exception as e:
                 appendException(e, "error processing vanilla file: "+file)
                 raise
+        # helps with unreal-map-flipper
+        # a = reader.GetSubclasses('Decoration')
+        # for c in a:
+        #     print(c+'=0,')
+        # sys.exit(0)
 
     for mod in mods:
         notice("processing files from mod "+mod)
