@@ -32,7 +32,7 @@ class OtherFile():
         filename = path[-1]
         namespace = path[-3]
         type = path[-2]
-        if filename.endswith('.txt') or filename.endswith('.pcx'):
+        if filename.endswith('.txt') or filename.endswith('.pcx') or filename.endswith('.wav'):
             return OtherFile(mod_name, file, filename, namespace, type)
         return None
 
