@@ -88,7 +88,7 @@ class UnrealScriptFile():
 
         oldclassline = f.classline
 
-        f.classline = re.sub('class\s+'+f.classname+'\s+'+f.operator+'\s+'+f.baseclass, comment + 'class '+classname+' '+operator+' '+baseclass, oldclassline, count=1)
+        f.classline = re.sub('class\s+'+f.classname+'\s+'+f.operator+'\s+'+f.baseclass, comment + 'class '+classname+' '+operator+' '+baseclass, oldclassline, count=1, flags=re.IGNORECASE)
         f.classname = classname
         f.operator = operator
         f.baseclass = baseclass
