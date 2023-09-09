@@ -56,8 +56,8 @@ def apply_merge(a, orig_content, b):
     b_content = re.sub(b.classline, "/* "+b.classline+" */", b_content, count=1)
     b_content_no_comments = b.strip_comments(b_content)
 
-    pattern_pre = r'(?P<prefix>(?P<functype>function|event)\s+(?P<types>[^\(]+\s+)?)'
-    pattern_mid = r'(?P<name>[^\s\(]+)'
+    pattern_pre = r'(?P<prefix>(?P<functype>function|event)\s+(?P<types>[^\(;]+\s+)?)'
+    pattern_mid = r'(?P<name>[^\s\(;]+)'
     pattern_post = r'(?P<end>\s*\()'
     r = re.compile(pattern_pre+pattern_mid+pattern_post, flags=re.IGNORECASE)
     for i in r.finditer(b_content_no_comments):
