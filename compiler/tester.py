@@ -23,8 +23,9 @@ def runAutomatedTests(out, package):
         printHeader('Starting Automated Tests')
 
         # then we run this command
-        # ucc server ini=test.ini
-        log = call([ out + '/System/ucc', 'server', 'ini=test.ini' ])[1]
+        # ucc server 12_VANDENBERG_TUNNELS?-hax0r?ini=test.ini
+        # the -hax0r is what allows us to specify the starting map other than DX
+        log = call([ out + '/System/ucc', 'server', '12_VANDENBERG_TUNNELS?-hax0r?ini=test.ini' ])[1]
         cleanup(out)
 
         printHeader('Automated Tests Finished')
