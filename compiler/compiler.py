@@ -56,8 +56,12 @@ def run_profile(args, settings):
     changed = False
     if settings.get('copy_if_changed'):
         copy_local = True
-        gitstatus = call(['git', 'status'])[1]
-        if re.search(r'%s' % settings.get('copy_if_changed'), gitstatus):
+        gitstatus = None
+        try:
+            gitstatus = call(['git', 'status'])[1]
+        except Exception as e:
+            notice("failed to call git status: " + repr(e))
+        if gitstatus and re.search(r'%s' % settings.get('copy_if_changed'), gitstatus):
             changed = True
 
     (compileResult, compileWarnings) = compile(args, settings)
