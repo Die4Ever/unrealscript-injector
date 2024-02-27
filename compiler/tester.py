@@ -63,7 +63,7 @@ def parseUCClog(log):
             modulesTested.append(line.strip())
         elif "tests failed!" in line:
             modulesTested.append(line.strip())
-        elif "fail: " in line:
+        elif line.startswith("ERROR: fail: "):
             failures.append(line.strip())
         elif "all tests passed!" in line:
             allTestsPassed.append(line.strip())
