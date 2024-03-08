@@ -205,7 +205,7 @@ def copyPackageFile(out, package):
     file = package+'.u'
     if exists(out + '/System/'+file):
         notice(file+" exists")
-        shutil.copy2(out + '/System/'+file,'./'+file)
+        shutil.copy(out + '/System/'+file,'./'+file)
         notice(file+" copied locally")
     else:
         raise RuntimeError("could not find "+file)
