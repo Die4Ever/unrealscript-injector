@@ -26,6 +26,7 @@ parser = argparse.ArgumentParser(description='Deus Ex Injecting Compiler')
 
 parser.add_argument('--profile', help='Which profile(s) to use from the settings file')
 parser.add_argument('--verbose', action="store_true", help="Output way more to the screen")
+parser.add_argument('--once', action="store_true", help="Only run once and exit")
 args = parser.parse_args()
 #pp.pprint(args)
 print(repr(args))
@@ -64,10 +65,11 @@ while rerun != "exit":
         args.base.printError("----------------")
 
     print("\n")
+    if args.once:
+        break
     print( datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         + ": \npress enter to compile "+args.profile+" again")
     print("- or type in a new profile name")
     rerun = input("- otherwise type exit: ")
 
-print("\n\nto run this again, use this command: (coming soon)")
 input("press enter to continue")
