@@ -1,4 +1,5 @@
 # calls the other modules and runs the UCC make compiler
+import hashlib
 from compiler.base import *
 import json
 
@@ -117,6 +118,11 @@ def compile(args, settings):
                 appendException(e, "error processing vanilla file: "+file)
                 raise
         assert len(orig_files) > 100, 'found original code files in source_path'
+        if settings.get('hash_check'):
+            c = settings['hash_check']['class']
+            hash = MD5(orig_files[c].content)
+            expected = settings['hash_check']['expected']
+            assert hash == expected, 'MD5 of ' + c + ' is ' + hash + ', expected ' + expected
         # helps with unreal-map-flipper
         # a = reader.GetSubclasses('Decoration')
         # for c in a:
@@ -219,3 +225,9 @@ def file_is_blacklisted(file, settings):
             return True
     return False
 
+def MD5(data) -> str:
+    if isinstance(data, str):
+        data = data.encode('utf-8')
+    ret = hashlib.md5(data).hexdigest()
+    debug("MD5 of " + str(len(data)) + " bytes is " + ret)
+    return ret
