@@ -116,6 +116,7 @@ def compile(args, settings):
             except Exception as e:
                 appendException(e, "error processing vanilla file: "+file)
                 raise
+        assert len(orig_files) > 100, 'found original code files in source_path'
         # helps with unreal-map-flipper
         # a = reader.GetSubclasses('Decoration')
         # for c in a:
@@ -135,6 +136,7 @@ def compile(args, settings):
             except Exception as e:
                 appendException(e, "error processing mod file: "+file)
                 raise
+        assert len(mods_files[-1]) > 10, 'found code files in '+mod
 
     notice("\nwriting source files...")
     writer.before_write(orig_files, injects)

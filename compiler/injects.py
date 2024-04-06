@@ -1,5 +1,5 @@
-# injects means our class will take the place of the baseclass, and the baseclass will have "Base" appended to the end of its name
-# class DXRHuman injects Human; will be saved as class Human extends HumanBase; and the original Human class will be saved as HumanBase
+# injects means our class will take the place of the baseclass, and the baseclass will have "InjBase" appended to the end of its name
+# class DXRHuman injects Human; will be saved as class Human extends HumanInjBase; and the original Human class will be saved as HumanInjBase
 from compiler.base import *
 
 disabled = False
