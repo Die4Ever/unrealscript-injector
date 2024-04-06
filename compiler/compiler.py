@@ -118,10 +118,10 @@ def compile(args, settings):
                 appendException(e, "error processing vanilla file: "+file)
                 raise
         assert len(orig_files) > 100, 'found original code files in source_path'
-        if settings.get('hash_check'):
-            c = settings['hash_check']['class']
+        for hashcheck in settings.get('hash_checks', []):
+            c = hashcheck['class']
             hash = MD5(orig_files[c].content)
-            expected = settings['hash_check']['expected']
+            expected = hashcheck['expected']
             assert hash == expected, 'MD5 of ' + c + ' is ' + hash + ', expected ' + expected
         # helps with unreal-map-flipper
         # a = reader.GetSubclasses('Decoration')
