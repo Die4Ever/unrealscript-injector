@@ -5,6 +5,16 @@ import json
 
 dryrun = False
 
+def merge_dicts(base, priority):
+    merged = base.copy()
+    for p in priority:
+        if isinstance(base[p], dict):
+            merged[p] = merge_dicts(base[p], priority[p])
+        else:
+            merged[p] = priority[p]
+    return merged
+
+
 def run(args):
     if args.verbose:
         args.base.loglevel = 'debug'
@@ -22,12 +32,7 @@ def run(args):
         appendException(e, '\n\nERROR: You need to copy compiler_settings.example.json to compiler_settings.json and adjust the paths.')
         raise
 
-    merged = default_settings
-    for p in settings:
-        if p not in merged:
-            merged[p] = {}
-        merged[p] = {**merged[p], **settings[p]}
-
+    merged = merge_dicts(default_settings, settings)
 
     profiles = []
     if argprofiles == 'all':
