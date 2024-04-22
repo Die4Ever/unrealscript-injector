@@ -8,7 +8,7 @@ dryrun = False
 def merge_dicts(base, priority):
     merged = base.copy()
     for p in priority:
-        if isinstance(base[p], dict):
+        if isinstance(priority[p], dict):
             merged[p] = merge_dicts(base[p], priority[p])
         else:
             merged[p] = priority[p]
