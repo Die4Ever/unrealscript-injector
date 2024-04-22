@@ -9,7 +9,7 @@ def merge_dicts(base, priority):
     merged = base.copy()
     for p in priority:
         if isinstance(priority[p], dict):
-            merged[p] = merge_dicts(base[p], priority[p])
+            merged[p] = merge_dicts(base.get(p, {}), priority[p])
         else:
             merged[p] = priority[p]
     return merged
