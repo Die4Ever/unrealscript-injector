@@ -1,14 +1,34 @@
 # handles ifdef so we can exclude/include code depending on compiler flags, like if we want to build on top of another mod
 from compiler.base import *
 
+def proc_conditions(cond, definitions):
+    if '&&' in cond:
+        if '||' in cond:
+            raise RuntimeError("We don't currently support mixed && with || in preprocessor conditions: " + cond)
+        ands = True
+        vars = cond.split('&&')
+    else:
+        ands = False
+        vars = cond.split('||')
+
+    for var in vars:
+        if var.strip() in definitions:
+            if not ands:
+                return True
+        elif ands:
+            return False
+
+    return ands
+
+
 def bIfdef(ifdef, cond, definitions):
     if ifdef == '#else':
         return True
     #var = re.search( r'(#\w+) (.*)$', ifdef )
     if ifdef == '#ifdef' or ifdef == '#elseif':
-        return cond in definitions
+        return proc_conditions(cond, definitions)
     elif ifdef == '#ifndef' or ifdef == '#elseifn':
-        return cond not in definitions
+        return not proc_conditions(cond, definitions)
 
     raise RuntimeError("Unknown preprocessor "+ifdef+' '+cond)
 
@@ -61,8 +81,26 @@ def preprocess(content, ifdef, definitions):
     return content
 
 
+def replace_checkcompile(content, definitions):
+    r = re.compile(r'(#dontcompileif|#compileonlyif) (.+)')
+    content_out = content
+    for i in r.finditer(content):
+        cond = proc_conditions(i.group(2), definitions)
+        if i.group(1) == '#dontcompileif' and cond:
+            return None
+        elif i.group(1) == '#compileonlyif' and not cond:
+            return None
+
+        vars = i.group(1).split('||')
+        for var in vars:
+            if var.strip() in definitions:
+                return None
+        content_out = content_out.replace( i.group(0), '' )
+    return content_out
+
+
 def replace_vars(content, definitions):
-    r = re.compile(r'#var\((\w+)\)')
+    r = re.compile(r'#var\((\w+?)\)')
     content_out = content
     for i in r.finditer(content):
         if i.group(1) in definitions:
@@ -73,10 +111,10 @@ def replace_vars(content, definitions):
 
 
 def replace_defineds(content, definitions):
-    r = re.compile(r'#defined\((\w+)\)')
+    r = re.compile(r'#defined\((.+?)\)')
     content_out = content
     for i in r.finditer(content):
-        if i.group(1) in definitions:
+        if proc_conditions(i.group(1), definitions):
             content_out = content_out.replace( i.group(0), 'true' )
         else:
             content_out = content_out.replace( i.group(0), 'false' )
@@ -86,6 +124,9 @@ def replace_defineds(content, definitions):
 def preprocessor(content, definitions):
     # TODO: doesn't yet support nested preprocessor definitions
     num_lines = content.count('\n')
+    content = replace_checkcompile(content, definitions)
+    if not content:
+        return None
     content = replace_vars(content, definitions)
     content = replace_defineds(content, definitions)
     content_out = content
