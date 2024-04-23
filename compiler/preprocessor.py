@@ -82,13 +82,13 @@ def preprocess(content, ifdef, definitions):
 
 
 def replace_checkcompile(content, definitions):
-    r = re.compile(r'(#dontcompileif|#compileonlyif) (.+)')
+    r = re.compile(r'(#dontcompileif|#compileif) (.+)')
     content_out = content
     for i in r.finditer(content):
         cond = proc_conditions(i.group(2), definitions)
         if i.group(1) == '#dontcompileif' and cond:
             return None
-        elif i.group(1) == '#compileonlyif' and not cond:
+        elif i.group(1) == '#compileif' and not cond:
             return None
 
         vars = i.group(1).split('||')
