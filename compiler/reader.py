@@ -38,13 +38,16 @@ class OtherFile():
 
 
 class UnrealScriptFile():
-    def __init__(self, mod_name, file, preprocessor, definitions):
+    @staticmethod
+    def read_file(mod_name, file, preprocessor, definitions):
+        self = UnrealScriptFile()
         self.file = file
         self.mod_name = mod_name
         self.binary = False
-        self.read_file(preprocessor, definitions)
+        return self._read_file(preprocessor, definitions)
 
-    def read_file(self, preprocessor, definitions):
+
+    def _read_file(self, preprocessor, definitions):
         global subclasses
         success, self.filename, self.namespace, self.parentfolder, self.type = is_uc_file(self.file)
         if not success:
@@ -59,6 +62,9 @@ class UnrealScriptFile():
             self.content = data.decode('ansi', 'replace')
             self.content = self.content.replace('\r\n', '\n')
         self.content = preprocessor.preprocessor(self.content, definitions)
+        if not self.content:
+            info('skipping ' + self.file)
+            return None
         self.content_no_comments = self.strip_comments(self.content)
         self.classline = self.get_class_line(self.content_no_comments)
         inheritance = re.search(r'class\s+(?P<classname>\S+)\s+(.*\s+)??((?P<operator>(injects)|(extends)|(expands)|(overwrites)|(merges)|(shims))\s+(?P<baseclass>[^\s;]+))?', self.classline, flags=re.IGNORECASE)
@@ -79,6 +85,7 @@ class UnrealScriptFile():
         self.qualifiedclass = self.namespace+'.'+self.classname
         if self.operator == 'injects' and 'injections' not in definitions:
             self.modify_classline(self.classname, 'extends', self.baseclass)
+        return self
 
     def modify_classline(f, classname, operator, baseclass):
         comment = "// === was "+f.mod_name+'/'
@@ -116,11 +123,6 @@ class UnrealScriptFile():
         return content_no_comments
 
 
-def read_uc_file(mod_name, file, preprocessor, definitions):
-    f = UnrealScriptFile(mod_name, file, preprocessor, definitions)
-    return f
-
-
 def proc_file(file, files, mod_name, injects, preprocessor, definitions):
     debug("Processing "+file+" from "+mod_name)
     if not exists(file):
@@ -139,7 +141,7 @@ def proc_file(file, files, mod_name, injects, preprocessor, definitions):
         info("Processing folder "+str(folder)[-50:]+" from "+mod_name)
     proc_file.last_folder = folder
 
-    f = read_uc_file(mod_name, file, preprocessor, definitions)
+    f = UnrealScriptFile.read_file(mod_name, file, preprocessor, definitions)
     if f is None:
         return
 
