@@ -1,6 +1,20 @@
 # handles ifdef so we can exclude/include code depending on compiler flags, like if we want to build on top of another mod
 from compiler.base import *
 
+# in (?=(?P<next>#\w+))
+# the # symbol is for a lookahead
+# because we want to read up until the next preprocessor directive (like the next #elseif, #else, or #endif)
+# but we don't want to swallow it yet
+re_split_ifdef = re.compile(r'(?P<ifdef>#[^\s]+)( (?P<cond>[^\s]+))?\n(?P<code>.*?)\n(?=(?P<next>#\w+))', flags=re.DOTALL)
+
+re_comment_out = re.compile(r'^', flags=re.MULTILINE) # for a regex substitution with //
+re_compileif = re.compile(r'(#dontcompileif|#compileif) (.+)')
+re_replace_vars = re.compile(r'#var\((\w+?)\)')
+re_replace_defineds = re.compile(r'#defined\((.+?)\)')
+
+# for finding the start and end of an ifdef block:
+re_find_ifdefs = re.compile(r'((#ifdef )|(#ifndef ))(.*?)(#endif)', flags=re.DOTALL)
+
 def proc_conditions(cond, definitions):
     if '&&' in cond:
         if '||' in cond:
@@ -33,36 +47,43 @@ def bIfdef(ifdef, cond, definitions):
     raise RuntimeError("Unknown preprocessor "+ifdef+' '+cond)
 
 
-def preprocess(content, ifdef, definitions):
-    # the ?=(#\w+) is for a lookahead
-    # because we want to read up until the next preprocessor directive
-    # but we don't want to swallow it yet
-    r = re.compile(r'(?P<ifdef>#[^\s]+)( (?P<cond>[^\s]+))?\n(?P<code>.*?)\n(?=(?P<next>#\w+))', flags=re.DOTALL)
-
-    # pad the new lines so the errors coming from the compiler match the lines in the original files
-    num_lines_before = 0
-    num_lines_after = 1 # 1 for the #endif
+def preprocess(content: str, ifdef: str, definitions: dict):
+    removed_code_before = ''
+    removed_code_after = ''
     replacement = None
-    num_lines = 0
     counts = {'#ifdef':0, '#ifndef':0, '#else':0, '#elseif':0, '#elseifn':0}
 
-    for i in r.finditer(ifdef):
+    for i in re_split_ifdef.finditer(ifdef):
         counts[i.group('ifdef')] += 1
 
+        ifdeftext = i.group('ifdef')
+        if i.group('cond'):
+            ifdeftext += ' ' + i.group('cond')
+        ifdeftext += '\n'
+        blocktext = ifdeftext + i.group('code')
+        if i.group('next'):
+            blocktext += '\n'
+        commentedtext = re_comment_out.sub('//', blocktext)
+
         if replacement is not None:
-            num_lines_after += i.group('code').count('\n') + 2
+            removed_code_after += commentedtext
 
         elif bIfdef(i.group('ifdef'), i.group('cond'), definitions):
-            num_lines_before += 1
+            removed_code_before += '//' + ifdeftext
             replacement = i.group('code')
-            num_lines = replacement.count('\n')
+            removed_code_after += '\n'
 
         elif replacement is None:
-            num_lines_before += i.group('code').count('\n') + 2
+            removed_code_before += commentedtext
 
-    if num_lines_before + num_lines + num_lines_after > 200:
+        if i.group('next') == '#endif':
+            removed_code_after += '//#endif'
+
+    # warnings
+    num_lines = ifdef.count('\n')
+    if num_lines > 200:
         # this is a strong warning to refactor the code
-        raise Exception("ifdef is "+str(num_lines_before + num_lines + num_lines_after)+" lines long!")
+        raise Exception("ifdef is "+str(num_lines)+" lines long!")
     if counts['#ifdef'] + counts['#ifndef'] != 1:
         raise Exception("ifdef has "+str(counts['#ifdef'] + counts['#ifndef'])+" #ifdefs/#ifndefs")
     if counts['#elseif'] + counts['#elseifn'] > 20:
@@ -73,36 +94,28 @@ def preprocess(content, ifdef, definitions):
 
     if replacement is None:
         replacement = ""
-        num_lines_before -= 1
 
-    if replacement is not None:
-        replacement = ('\n'*num_lines_before) + replacement + ('\n'*num_lines_after)
-        return content.replace( ifdef, replacement )
-    return content
+
+    replacement = removed_code_before + replacement + removed_code_after
+    return content.replace( ifdef, replacement )
 
 
 def replace_checkcompile(content, definitions):
-    r = re.compile(r'(#dontcompileif|#compileif) (.+)')
     content_out = content
-    for i in r.finditer(content):
+    for i in re_compileif.finditer(content):
         cond = proc_conditions(i.group(2), definitions)
         if i.group(1) == '#dontcompileif' and cond:
             return None
         elif i.group(1) == '#compileif' and not cond:
             return None
 
-        vars = i.group(1).split('||')
-        for var in vars:
-            if var.strip() in definitions:
-                return None
-        content_out = content_out.replace( i.group(0), '' )
+        content_out = content_out.replace( i.group(0), '// ' + i.group(0) )
     return content_out
 
 
 def replace_vars(content, definitions):
-    r = re.compile(r'#var\((\w+?)\)')
     content_out = content
-    for i in r.finditer(content):
+    for i in re_replace_vars.finditer(content):
         if i.group(1) in definitions:
             content_out = content_out.replace( i.group(0), definitions[i.group(1)] )
         else:
@@ -111,9 +124,8 @@ def replace_vars(content, definitions):
 
 
 def replace_defineds(content, definitions):
-    r = re.compile(r'#defined\((.+?)\)')
     content_out = content
-    for i in r.finditer(content):
+    for i in re_replace_defineds.finditer(content):
         if proc_conditions(i.group(1), definitions):
             content_out = content_out.replace( i.group(0), 'true' )
         else:
@@ -130,8 +142,7 @@ def preprocessor(content, definitions):
     content = replace_vars(content, definitions)
     content = replace_defineds(content, definitions)
     content_out = content
-    r = re.compile(r'((#ifdef )|(#ifndef ))(.*?)(#endif)', flags=re.DOTALL)
-    for i in r.finditer(content):
+    for i in re_find_ifdefs.finditer(content):
         content_out = preprocess(content_out, i.group(0), definitions)
     assert num_lines == content_out.count('\n')
     return content_out
