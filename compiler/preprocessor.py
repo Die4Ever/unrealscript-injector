@@ -5,7 +5,7 @@ from compiler.base import *
 # the # symbol is for a lookahead
 # because we want to read up until the next preprocessor directive (like the next #elseif, #else, or #endif)
 # but we don't want to swallow it yet
-re_split_ifdef = re.compile(r'(?P<ifdef>#[^\s]+)( (?P<cond>[^\s]+))?\n(?P<code>.*?)\n(?=(?P<next>#\w+))', flags=re.DOTALL)
+re_split_ifdef = re.compile(r'(?P<ifdef>#[^\s]+)( (?P<cond>[^\s]+))?\n(?P<code>.*?)\n[ \t]*(?=(?P<next>#\w+))', flags=re.DOTALL)
 
 re_comment_out = re.compile(r'^', flags=re.MULTILINE) # for a regex substitution with //
 re_compileif = re.compile(r'(#dontcompileif|#compileif) (.+)')
