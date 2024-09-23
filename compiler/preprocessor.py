@@ -9,7 +9,7 @@ re_split_ifdef = re.compile(r'(?P<ifdef>#[^\s]+)( (?P<cond>[^\s]+))?\n(?P<code>.
 
 re_comment_out = re.compile(r'^', flags=re.MULTILINE) # for a regex substitution with //
 re_compileif = re.compile(r'(#dontcompileif|#compileif) (.+)')
-re_replace_vars = re.compile(r'#var\((\w+?)\)')
+re_replace_vars = re.compile(r'#(var|bool)\((\w+?)\)')
 re_replace_defineds = re.compile(r'#defined\((.+?)\)')
 
 # for finding the start and end of an ifdef block:
@@ -26,7 +26,7 @@ def proc_conditions(cond, definitions):
         vars = cond.split('||')
 
     for var in vars:
-        if var.strip() in definitions:
+        if definitions.get(var.strip()):
             if not ands:
                 return True
         elif ands:
@@ -116,10 +116,16 @@ def replace_checkcompile(content, definitions):
 def replace_vars(content, definitions):
     content_out = content
     for i in re_replace_vars.finditer(content):
-        if i.group(1) in definitions:
-            content_out = content_out.replace( i.group(0), definitions[i.group(1)] )
-        else:
-            content_out = content_out.replace( i.group(0), "None" )
+        type = i.group(1)
+        var = i.group(2)
+        if type=='bool':
+            text = str(bool(definitions.get(var)))
+        elif var not in definitions:
+            text = "None"
+        elif type=='var':
+            text = str(definitions[var])
+        content_out = content_out.replace( i.group(0), text)
+
     return content_out
 
 
