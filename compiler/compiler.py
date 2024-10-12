@@ -223,9 +223,9 @@ def displayCompileError(e):
     with open(m.group(1)) as f:
         lines = f.readlines()
         printError('Code context around line '+str(linenum)+':')
-        text = str(linenum-1) + ': ' + lines[linenum-2]
-        text+= WARNING + str(linenum) + ENDCOLOR + ': ' + lines[linenum-1]
-        text+= str(linenum) + ': ' + lines[linenum]
+        text = str(linenum-1) + ':' + lines[linenum-2]
+        text+= WARNING + str(linenum) + ':' + ENDCOLOR + lines[linenum-1]
+        text+= str(linenum) + ':' + lines[linenum]
         print(text)
 
 
