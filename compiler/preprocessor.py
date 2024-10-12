@@ -121,7 +121,7 @@ def replace_vars(content, definitions):
         if type=='bool':
             text = str(bool(definitions.get(var)))
         elif type=='var':
-            text = str(definitions.get(var))
+            text = str(definitions.get(var, 'None'))
         content_out = content_out.replace(i.group(0), text)
 
     return content_out
