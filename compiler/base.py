@@ -130,12 +130,12 @@ def call(cmds, verbose=False, stdout=True, stderr=True):
             (outs, errs) = read(pipe, outs, errs, verbose)
             proc.poll()
         if proc.returncode != 0:
-            raise Exception("call didn't return 0: "+repr(cmds))
+            raise Exception("call didn't return 0: "+repr(cmds), outs, errs)
     except Exception as e:
         proc.kill()
         (outs, errs) = read(pipe, outs, errs, verbose)
         proc.poll()
-        print(traceback.format_exc())
+        #print(traceback.format_exc())
         raise
     elapsed_time = timer() - start # in seconds
     print( repr(cmds) + " took " + str(elapsed_time) + " seconds and returned " + str(proc.returncode) + "\n" )

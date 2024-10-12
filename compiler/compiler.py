@@ -72,7 +72,7 @@ def run_profile(args, settings):
 
     (compileResult, compileWarnings) = compile(args, settings)
     if compileResult != 0:
-        raise RuntimeError("Compilation failed, returned: "+str(compileResult))
+        return False
 
     testSuccess = True
     if run_tests:
@@ -192,12 +192,16 @@ def compile(args, settings):
         os.makedirs(out_dir + '/DeusEx/Inc', exist_ok=True)
     # also we can check UCC.log for success or just the existence of DeusEx.u
     ret = 1
-    (ret, out, errs) = call([ out_dir + '/System/ucc', 'make', '-h', '-NoBind', '-Silent' ])
-    warnings = []
-    re_terrorist = re.compile(r'((Parsing)|(Compiling)) (([\w\d_]*Terrorist\w*)|(AmmoNone))')
-    for line in errs.splitlines():
-        if not re_terrorist.match(line):
-            warnings.append(line)
+    try:
+        (ret, out, errs) = call([ out_dir + '/System/ucc', 'make', '-h', '-NoBind', '-Silent' ])
+        warnings = []
+        re_terrorist = re.compile(r'((Parsing)|(Compiling)) (([\w\d_]*Terrorist\w*)|(AmmoNone))')
+        for line in errs.splitlines():
+            if not re_terrorist.match(line):
+                warnings.append(line)
+    except Exception as e:
+        displayCompileError(e)
+        return (1, None)
 
     # TODO: if ret != 0 we should show the end of UCC.log, we could also keep track of compiler warnings to show at the end after the test results
 
@@ -207,6 +211,22 @@ def compile(args, settings):
             raise RuntimeError("could not find file after compiling: "+file)
 
     return (ret, warnings)
+
+
+def displayCompileError(e):
+    errs = e.args[2]
+    firstline = errs.splitlines()[0]
+    m = re.match(r'(.*\.uc)\((\d+)\) : Error,', firstline)
+    if not m:
+        return
+    linenum = int(m.group(2))
+    with open(m.group(1)) as f:
+        lines = f.readlines()
+        printError('Code context around line '+str(linenum)+':')
+        text = str(linenum-1) + ': ' + lines[linenum-2]
+        text+= WARNING + str(linenum) + ENDCOLOR + ': ' + lines[linenum-1]
+        text+= str(linenum) + ': ' + lines[linenum]
+        print(text)
 
 
 def copy_package_files(out_dir, packages):
