@@ -215,8 +215,10 @@ def compile(args, settings):
 
 def displayCompileError(e):
     errs = e.args[2]
-    firstline = errs.splitlines()[0]
-    m = re.match(r'(.*\.uc)\((\d+)\) : Error,', firstline)
+    for line in errs.splitlines():
+        m = re.match(r'(.*\.uc)\((\d+)\) : Error,', line)
+        if m:
+            break
     if not m:
         return
     linenum = int(m.group(2))
