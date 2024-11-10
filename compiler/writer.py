@@ -127,7 +127,7 @@ def write_file(out, f, written, injects):
             with open(path, 'rb') as file:
                 oldcontent = file.read()
         else:
-            with open(path, 'r') as file:
+            with open(path, 'r', encoding='windows-1252') as file:
                 oldcontent = file.read()
         if oldcontent == f.content:
             return

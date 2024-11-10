@@ -18,7 +18,7 @@ class OtherFile():
                 if data[:2] == b'\xfe\xff' or data[:2] == b'\xff\xfe': # 'ÿþ'
                     self.content = data.decode('utf-16', 'replace')
                     data = self.content.encode('utf-8', 'replace')
-                self.content = decode(data)
+                self.content = data.decode('windows-1252', 'ignore')
                 self.content = self.content.replace('\r\n', '\n')
             else:
                 self.content = data
@@ -59,7 +59,7 @@ class UnrealScriptFile():
             if data[:2] == b'\xfe\xff' or data[:2] == b'\xff\xfe': # 'ÿþ'
                 self.content = data.decode('utf-16', 'replace')
                 data = self.content.encode('utf-8', 'replace')
-            self.content = decode(data)
+            self.content = data.decode('windows-1252', 'ignore')
             self.content = self.content.replace('\r\n', '\n')
         self.content = preprocessor.preprocessor(self.content, definitions)
         if not self.content:
@@ -161,8 +161,3 @@ def GetSubclasses(baseclass: str) -> list:
         ret.append(c)
         ret.extend(GetSubclasses(c))
     return ret
-
-def decode(data):
-    if os.name == 'nt': # Windows
-        return data.decode('ansi', 'ignore')
-    return data.decode('utf-8', 'ignore')
