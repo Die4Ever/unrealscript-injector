@@ -116,12 +116,13 @@ def compile(args, settings):
 
     if source:
         notice("processing source files from "+source)
-        for file in insensitive_glob(source+'/*'):
-            try:
-                reader.proc_file(file, orig_files, 'source', None, preprocessor, definitions)
-            except Exception as e:
-                appendException(e, "error processing vanilla file: "+file)
-                raise
+        for package in packages:
+            for file in insensitive_glob(source+'/'+package+'/*'):
+                try:
+                    reader.proc_file(file, orig_files, 'source', None, preprocessor, definitions)
+                except Exception as e:
+                    appendException(e, "error processing vanilla file: "+file)
+                    raise
         assert len(orig_files) > 100, 'found original code files in source_path'
         for hashcheck in settings.get('hash_checks', []):
             c = hashcheck['class']
@@ -219,6 +220,7 @@ def compile(args, settings):
 
 def displayCompileError(e):
     if os.name != 'nt': # TODO, adjust filepath
+        print(e.args[0])
         return
     errs = e.args[2]
     for line in errs.splitlines():
