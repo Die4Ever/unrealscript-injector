@@ -193,7 +193,11 @@ def compile(args, settings):
     # also we can check UCC.log for success or just the existence of DeusEx.u
     ret = 1
     try:
-        (ret, out, errs) = call([ out_dir + '/System/ucc', 'make', '-h', '-NoBind', '-Silent' ])
+        ucc = Path(out_dir)/'System'/'UCC.exe'
+        cmd = [ str(ucc), 'make', '-h', '-NoBind', '-Silent' ]
+        if os.name != 'nt':
+            cmd = ['wine'] + cmd
+        (ret, out, errs) = call(cmd)
         warnings = []
         re_terrorist = re.compile(r'((Parsing)|(Compiling)) (([\w\d_]*Terrorist\w*)|(AmmoNone))')
         for line in errs.splitlines():
@@ -214,6 +218,8 @@ def compile(args, settings):
 
 
 def displayCompileError(e):
+    if os.name != 'nt': # TODO, adjust filepath
+        return
     errs = e.args[2]
     for line in errs.splitlines():
         m = re.match(r'(.*\.uc)\((\d+)\) : Error,', line)

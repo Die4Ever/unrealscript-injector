@@ -18,7 +18,7 @@ class OtherFile():
                 if data[:2] == b'\xfe\xff' or data[:2] == b'\xff\xfe': # 'ÿþ'
                     self.content = data.decode('utf-16', 'replace')
                     data = self.content.encode('utf-8', 'replace')
-                self.content = data.decode('ansi', 'replace')
+                self.content = decode(data)
                 self.content = self.content.replace('\r\n', '\n')
             else:
                 self.content = data
@@ -59,7 +59,7 @@ class UnrealScriptFile():
             if data[:2] == b'\xfe\xff' or data[:2] == b'\xff\xfe': # 'ÿþ'
                 self.content = data.decode('utf-16', 'replace')
                 data = self.content.encode('utf-8', 'replace')
-            self.content = data.decode('ansi', 'replace')
+            self.content = decode(data)
             self.content = self.content.replace('\r\n', '\n')
         self.content = preprocessor.preprocessor(self.content, definitions)
         if not self.content:
@@ -95,7 +95,7 @@ class UnrealScriptFile():
 
         oldclassline = f.classline
 
-        re_old = 'class\s+'+f.classname+'\s+'+f.operator+'\s+'+f.baseclass
+        re_old = r'class\s+'+f.classname+r'\s+'+f.operator+r'\s+'+f.baseclass
         new_classline = comment + 'class '+classname+' '+operator+' '+baseclass
         f.classline = re.sub(re_old, new_classline, oldclassline, count=1, flags=re.IGNORECASE)
         f.classname = classname
@@ -161,3 +161,8 @@ def GetSubclasses(baseclass: str) -> list:
         ret.append(c)
         ret.extend(GetSubclasses(c))
     return ret
+
+def decode(data):
+    if os.name == 'nt': # Windows
+        return data.decode('ansi', 'relace')
+    return data.decode('utf-8', 'replace')

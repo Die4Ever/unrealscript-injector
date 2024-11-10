@@ -25,7 +25,10 @@ def runAutomatedTests(out, package):
         # then we run this command
         # ucc server 12_VANDENBERG_TUNNELS?-hax0r?ini=test.ini
         # the -hax0r is what allows us to specify the starting map other than DX
-        log = call([ out + '/System/ucc', 'server', 'ini=test.ini' ])[1]
+        cmd = [ out + '/System/UCC.exe', 'server', 'ini=test.ini' ]
+        if os.name != 'nt':
+            cmd = ['wine'] + cmd
+        log = call(cmd)[1]
         cleanup(out)
 
         printHeader('Automated Tests Finished')
@@ -34,10 +37,10 @@ def runAutomatedTests(out, package):
 
         printHeader('Results')
 
-        if exists(out + '/System/ucc.log'):
+        if exists(out + '/System/UCC.log'):
             rc = parseUCClog(log)
         else:
-            print("Couldn't find ucc.log - did the compilation actually happen?")
+            print("Couldn't find UCC.log - did the compilation actually happen?")
             rc = False
 
 
