@@ -164,5 +164,5 @@ def GetSubclasses(baseclass: str) -> list:
 
 def decode(data):
     if os.name == 'nt': # Windows
-        return data.decode('ansi', 'relace')
-    return data.decode('utf-8', 'replace')
+        return data.decode('ansi', 'ignore')
+    return data.decode('utf-8', 'ignore')
