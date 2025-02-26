@@ -124,7 +124,6 @@ def compile(args, settings):
                     appendException(e, "error processing vanilla file: "+file)
                     raise
         assert len(orig_files) > 0
-        orig_files = dict(sorted(orig_files.items()))
         for hashcheck in settings.get('hash_checks', []):
             c = hashcheck['class']
             hash = MD5(orig_files[c].content)
@@ -150,7 +149,6 @@ def compile(args, settings):
                 appendException(e, "error processing mod file: "+file)
                 raise
         assert len(mods_files[-1]) > 0, 'found code files in '+mod
-        mods_files[-1] = dict(sorted(mods_files[-1].items()))
 
     notice("\nwriting source files...")
     writer.before_write(orig_files, injects)

@@ -143,7 +143,7 @@ def call(cmds, verbose=False, stdout=True, stderr=True):
 
 
 def insensitive_glob(pattern):
-    return (
+    return sorted(
         glob.glob(pattern, recursive=True)
         + glob.glob(pattern+'/**', recursive=True)
         + glob.glob(pattern+'/*', recursive=True)
