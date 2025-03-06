@@ -123,7 +123,6 @@ def compile(args, settings):
                 except Exception as e:
                     appendException(e, "error processing vanilla file: "+file)
                     raise
-        assert len(orig_files) > 0
         for hashcheck in settings.get('hash_checks', []):
             c = hashcheck['class']
             hash = MD5(orig_files[c].content)
