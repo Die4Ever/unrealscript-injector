@@ -5,7 +5,7 @@ from compiler.base import *
 # the # symbol is for a lookahead
 # because we want to read up until the next preprocessor directive (like the next #elseif, #else, or #endif)
 # but we don't want to swallow it yet
-re_split_ifdef = re.compile(r'(?P<ifdef>#[^\s]+)( (?P<cond>[^\s]+))?\n(?P<code>.*?)\n[ \t]*(?=(?P<next>#\w+))', flags=re.DOTALL)
+re_split_ifdef = re.compile(r'(?P<ifdef>#[^\s]+)( (?P<cond>[^\n]+))?\n(?P<code>.*?)\n[ \t]*(?=(?P<next>#\w+))', flags=re.DOTALL)
 
 re_comment_out = re.compile(r'^', flags=re.MULTILINE) # for a regex substitution with //
 re_compileif = re.compile(r'(#dontcompileif|#compileif) (.+)')
@@ -16,6 +16,8 @@ re_replace_defineds = re.compile(r'#defined\((.+?)\)')
 re_find_ifdefs = re.compile(r'((#ifdef )|(#ifndef ))(.*?)(#endif)', flags=re.DOTALL)
 
 def proc_conditions(cond, definitions):
+    if '(' in cond or ')' in cond:
+        raise RuntimeError("We don't currently support parenthesis in preprocessor conditions: " + cond)
     if '&&' in cond:
         if '||' in cond:
             raise RuntimeError("We don't currently support mixed && with || in preprocessor conditions: " + cond)
@@ -85,6 +87,7 @@ def preprocess(content: str, ifdef: str, definitions: dict):
         # this is a strong warning to refactor the code
         raise Exception("ifdef is "+str(num_lines)+" lines long!")
     if counts['#ifdef'] + counts['#ifndef'] != 1:
+        print(counts)
         raise Exception("ifdef has "+str(counts['#ifdef'] + counts['#ifndef'])+" #ifdefs/#ifndefs")
     if counts['#elseif'] + counts['#elseifn'] > 20:
         # this is a strong warning to refactor the code
