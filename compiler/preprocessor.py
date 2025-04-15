@@ -9,13 +9,12 @@ re_split_ifdef = re.compile(r'(?P<ifdef>#[^\s]+)( (?P<cond>[^\n]+))?\n(?P<code>.
 
 re_comment_out = re.compile(r'^', flags=re.MULTILINE) # for a regex substitution with //
 re_compileif = re.compile(r'(#dontcompileif|#compileif) (.+)')
-re_replace_vars = re.compile(r'#(var|bool)\((\w+?)\)')
-re_replace_defineds = re.compile(r'#defined\((.+?)\)')
+re_replace_vars = re.compile(r'#(bool|defined|var)\((.+?)\)')
 
 # for finding the start and end of an ifdef block:
 re_find_ifdefs = re.compile(r'((#ifdef )|(#ifndef ))(.*?)(#endif)', flags=re.DOTALL)
 
-def proc_conditions(cond, definitions):
+def proc_conditions(cond, definitions, asBool=False): # is this a #bool or #defined?
     if '(' in cond or ')' in cond:
         raise RuntimeError("We don't currently support parenthesis in preprocessor conditions: " + cond)
     if '&&' in cond:
@@ -28,7 +27,10 @@ def proc_conditions(cond, definitions):
         vars = cond.split('||')
 
     for var in vars:
-        if definitions.get(var.strip()):
+        val = definitions.get(var.strip())
+        if asBool and not val:
+            val = None
+        if val is not None:
             if not ands:
                 return True
         elif ands:
@@ -122,21 +124,13 @@ def replace_vars(content, definitions):
         type = i.group(1)
         var = i.group(2)
         if type=='bool':
-            text = str(bool(definitions.get(var)))
+            text = str(proc_conditions(var, definitions, True))
+        elif type=='defined':
+            text = str(proc_conditions(var, definitions, False))
         elif type=='var':
             text = str(definitions.get(var, 'None'))
         content_out = content_out.replace(i.group(0), text)
 
-    return content_out
-
-
-def replace_defineds(content, definitions):
-    content_out = content
-    for i in re_replace_defineds.finditer(content):
-        if proc_conditions(i.group(1), definitions):
-            content_out = content_out.replace( i.group(0), 'true' )
-        else:
-            content_out = content_out.replace( i.group(0), 'false' )
     return content_out
 
 
@@ -147,7 +141,6 @@ def preprocessor(content, definitions):
     if not content:
         return None
     content = replace_vars(content, definitions)
-    content = replace_defineds(content, definitions)
     content_out = content
     for i in re_find_ifdefs.finditer(content):
         content_out = preprocess(content_out, i.group(0), definitions)
