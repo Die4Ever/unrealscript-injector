@@ -9,7 +9,7 @@ re_split_ifdef = re.compile(r'(?P<ifdef>#[^\s]+)( (?P<cond>[^\n]+))?\n(?P<code>.
 
 re_comment_out = re.compile(r'^', flags=re.MULTILINE) # for a regex substitution with //
 re_compileif = re.compile(r'(#dontcompileif|#compileif) (.+)')
-re_replace_vars = re.compile(r'#(bool|defined|var)\((.+?)\)')
+re_replace_vars = re.compile(r'#(bool|defined|var|switch)\((.+?)\)')
 
 # for finding the start and end of an ifdef block:
 re_find_ifdefs = re.compile(r'((#ifdef )|(#ifndef ))(.*?)(#endif)', flags=re.DOTALL)
@@ -123,11 +123,26 @@ def replace_vars(content, definitions):
     for i in re_replace_vars.finditer(content):
         type = i.group(1)
         var = i.group(2)
-        if type=='bool':
+        if type=='bool': # python's bool rules
             text = str(proc_conditions(var, definitions, True))
-        elif type=='defined':
+        elif type=='switch': # like a ternary as #switch(var: resultiftrue, elseresult), or like #switch(cond1: result1, elseif2: result2, elseif3: result3, else: elseresult4)
+            args = var.split(',')
+            for j in range(len(args)):
+                result = args[j]
+                if ':' in result:
+                    (cond, result) = result.split(':')
+                    cond = cond.strip()
+                else:
+                    cond = 'else' # default to an else, like a ternary
+
+                if cond != 'else':
+                    cond = proc_conditions(cond, definitions, True)
+                if cond:
+                    text = result
+                    break
+        elif type=='defined': # if defined or undefined, ignoring value
             text = str(proc_conditions(var, definitions, False))
-        elif type=='var':
+        elif type=='var': # the value of the variable
             text = str(definitions.get(var, 'None'))
         content_out = content_out.replace(i.group(0), text)
 
