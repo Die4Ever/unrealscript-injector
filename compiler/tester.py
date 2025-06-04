@@ -63,7 +63,7 @@ def parseUCClog(log):
     #Run through to find modules that ran tests and what failures there were
     for line in lines:
         if "passed tests!" in line:
-            modulesTested.append(line.strip())
+            pass #modulesTested.append(line.strip())
         elif "tests failed!" in line:
             modulesTested.append(line.strip())
         elif line.startswith("ERROR: fail: "):

@@ -19,42 +19,45 @@ class DebugLevels(IntEnum):
     DEBUG = 3
     TRACE = 4
 
-loglevel = DebugLevels.INFO
+_loglevel = DebugLevels.INFO
 
 vanilla_inheritance_keywords = [None, 'extends', 'expands']
 # text colors
 WARNING = '\033[91m'
 ENDCOLOR = '\033[0m'
-re_error = re.compile(r'((none)|(null)|(warning)|(error[^i])|(fail)|(critical)|(out of bounds)|(time:))', re.IGNORECASE)
+re_error = re.compile(r'((none)|(null)|(warning)|(error[^i])|(fail)|(critical)|(out of bounds)|((^| )time:)|(LoadMap:))', re.IGNORECASE)
 
 def set_loglevel(new_loglevel):
-    global loglevel
+    global _loglevel
     assert isinstance(new_loglevel, DebugLevels), 'loglevel must be of type DebugLevels'
-    loglevel = new_loglevel
+    _loglevel = new_loglevel
 
 def increase_loglevel(new_loglevel):
-    if new_loglevel > loglevel:
+    global _loglevel
+    assert isinstance(new_loglevel, DebugLevels), 'loglevel must be of type DebugLevels'
+    assert isinstance(_loglevel, DebugLevels), 'loglevel must be of type DebugLevels'
+    if new_loglevel > _loglevel:
         set_loglevel(new_loglevel)
 
 def trace(str):
-    global loglevel
-    if loglevel >= DebugLevels.TRACE:
+    global _loglevel
+    if _loglevel >= DebugLevels.TRACE:
         print(str)
 
 def debug(str):
-    global loglevel
-    if loglevel >= DebugLevels.DEBUG:
+    global _loglevel
+    if _loglevel >= DebugLevels.DEBUG:
         print(str)
 
 def info(str):
-    global loglevel
-    if loglevel >= DebugLevels.INFO:
+    global _loglevel
+    if _loglevel >= DebugLevels.INFO:
         print(str)
 
 def notice(str):
     # this might be useful if we do threading? so we can redirect to a file?
-    global loglevel
-    if loglevel >= DebugLevels.NOTICE:
+    global _loglevel
+    if _loglevel >= DebugLevels.NOTICE:
         print(str)
 
 def prependException(e, msg):
@@ -99,10 +102,11 @@ def read(pipe, outs, errs, verbose):
 
 
 def call(cmds, verbose=False, stdout=True, stderr=True):
+    global _loglevel
     print("\nrunning "+repr(cmds))
     start = timer()
     last_print = start
-    if loglevel >= DebugLevels.TRACE:
+    if _loglevel >= DebugLevels.TRACE:
         verbose = True
 
     if stdout:
