@@ -23,7 +23,7 @@ def execute_injections(f, prev, idx, inject, injects):
 
     debug(f.qualifiedclass + ' has '+ str(len(injects)) +' injections, renaming to '+newclassname )
     f.modify_classline(newclassname, f.operator, f.baseclass)
-    f.content = re.sub('([^a-z])(self)([^a-z])', r'\1'+oldclassname+r'(Self)\3', f.content, flags=re.IGNORECASE)
+    f.content = re.sub('([^a-z_])(self)([^a-z_])', r'\1'+oldclassname+r'(Self)\3', f.content, flags=re.IGNORECASE)
     return True
 
 

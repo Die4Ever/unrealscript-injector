@@ -101,7 +101,8 @@ class UnrealScriptFile():
         f.classname = classname
         f.operator = operator
         f.baseclass = baseclass
-        f.content = re.sub(oldclassline, f.classline, f.content, count=1)
+        #re.sub doesn't match for a multiline classline (like the harry class in HP2), so use a string replace
+        f.content = f.content.replace(oldclassline,f.classline)
 
     def __repr__(self):
         return self.classline
