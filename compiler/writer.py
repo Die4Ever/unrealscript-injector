@@ -111,12 +111,15 @@ def write_file(out, f, written, injects):
         return
 
     path = pathlib.PurePath(out, f.namespace, f.type)
-    if not exists_dir(path):
-        os.makedirs(path, exist_ok=True)
+
+    parentPath = (path / f.filename).parent #This gets the full filepath, including any directories that might be bundled with the filename
     if type(f).__name__ == 'UnrealScriptFile':
-        path = path / ( f.classname+'.uc' )
+        path = parentPath / ( f.classname+'.uc' ) #put the file back in the same directory it originated from (which means working from the parentPath instead of the package root directory)
     else:
         path = path / f.filename
+
+    if not exists_dir(parentPath):
+        os.makedirs(parentPath, exist_ok=True)
 
     written[f.file] = 1
     written[str(path)] = 1

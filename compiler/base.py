@@ -166,20 +166,46 @@ def exists_dir(path):
     #     print("dir already exists: " + path)
     return exists
 
+def find_type_dir_path_offset(path):
+    typeDirs = ["Classes","Textures","Sounds","Text"]
+
+    lastTypeDirIdx = -1
+    found = False
+
+    for idx, pathChunk in enumerate(path):
+        if pathChunk in typeDirs:
+            found = True
+            lastTypeDirIdx = idx
+
+    return found,lastTypeDirIdx
+
+
 
 def is_uc_file(file):
     path = list(Path(file).parts)
     if len(path) <3:
         return False
-    filename = path[-1]
-    namespace = path[-3]
-    type = path[-2]
+
+    found,typeIdx = find_type_dir_path_offset(path)
+
+    if not found:
+        typeIdx = -2
+
+    namespaceIdx = typeIdx - 1
+    parentIdx = typeIdx - 2
+
+    filename = "//".join(path[typeIdx+1:])
+
+    namespace = path[namespaceIdx]
+    type = path[typeIdx]
     parent = None
-    if len(path) > 3:
+    if not found and len(path) > 3:
         parent = path[-4]
+    elif found and parentIdx>=0:
+        parent = path[parentIdx]
     if type != 'Classes':
         return False
-    if not path[-1].endswith('.uc'):
+    if not filename.endswith('.uc'):
         return False
 
     return True, filename, namespace, parent, type

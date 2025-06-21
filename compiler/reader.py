@@ -29,10 +29,19 @@ class OtherFile():
         path = list(Path(file).parts)
         if len(path) <3:
             return None
-        filename = path[-1]
-        namespace = path[-3]
-        type = path[-2]
-        if filename.endswith('.txt') or filename.endswith('.pcx') or filename.endswith('.wav') or filename.endswith('.mp3'):
+
+        found,typeIdx = find_type_dir_path_offset(path)
+
+        if not found:
+            typeIdx = -2
+        namespaceIdx = typeIdx - 1
+
+        filename = "//".join(path[typeIdx+1:])
+        namespace = path[namespaceIdx]
+        type = path[typeIdx]
+
+        lowerfilename = filename.lower()
+        if lowerfilename.endswith('.txt') or lowerfilename.endswith('.pcx') or lowerfilename.endswith('.wav') or lowerfilename.endswith('.mp3') or lowerfilename.endswith('.png'):
             return OtherFile(mod_name, file, filename, namespace, type)
         return None
 
