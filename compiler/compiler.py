@@ -125,6 +125,7 @@ def compile(args, settings):
                     raise
         for hashcheck in settings.get('hash_checks', []):
             c = hashcheck['class']
+            assert c in orig_files, 'File exists? '+c
             hash = MD5(orig_files[c].content)
             expected = hashcheck['expected']
             assert hash == expected, 'MD5 of ' + c + ' is ' + hash + ', expected ' + expected
