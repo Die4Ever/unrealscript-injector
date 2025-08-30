@@ -36,7 +36,7 @@ def run(args):
 
     profiles = []
     if argprofiles == 'all':
-        profiles = merged.keys()
+        profiles = settings.keys()
     else:
         profiles = argprofiles.split(',')
 
