@@ -120,7 +120,7 @@ def call(cmds, verbose=False, stdout=True, stderr=True):
         stderr = None
         stdout = None
 
-    proc = subprocess.Popen(cmds, stdout=stdout, stderr=stderr, close_fds=True, universal_newlines=True)
+    proc = subprocess.Popen(cmds, stdout=stdout, stderr=stderr, close_fds=True, universal_newlines=True, errors="replace")
     outs = ''
     errs = ''
     pipe = None
