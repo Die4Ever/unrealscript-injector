@@ -127,6 +127,7 @@ def replace_vars(content, definitions):
             text = str(proc_conditions(var, definitions, True))
         elif type=='switch': # like a ternary as #switch(var: resultiftrue, elseresult), or like #switch(cond1: result1, elseif2: result2, elseif3: result3, else: elseresult4)
             args = var.split(',')
+            text = ''
             for j in range(len(args)):
                 result = args[j]
                 if ':' in result:
