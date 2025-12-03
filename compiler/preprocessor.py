@@ -128,7 +128,11 @@ def replace_vars(content, definitions):
         elif type=='0b':
             text = str(int(var, 2))
         elif type=='bit':
-            text = str(1 << int(var))
+            args = var.split(',')
+            num = 0
+            for v in args:
+                num = num | (1 << int(v))
+            text = str(num)
         elif type=='switch': # like a ternary as #switch(var: resultiftrue, elseresult), or like #switch(cond1: result1, elseif2: result2, elseif3: result3, else: elseresult4)
             args = var.split(',')
             text = ''
