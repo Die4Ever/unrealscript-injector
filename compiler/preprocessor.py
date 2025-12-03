@@ -9,7 +9,7 @@ re_split_ifdef = re.compile(r'(?P<ifdef>#[^\s]+)( (?P<cond>[^\n]+))?\n(?P<code>.
 
 re_comment_out = re.compile(r'^', flags=re.MULTILINE) # for a regex substitution with //
 re_compileif = re.compile(r'(#dontcompileif|#compileif) (.+)')
-re_replace_vars = re.compile(r'#(bool|defined|var|switch)\((.+?)\)')
+re_replace_vars = re.compile(r'#(bool|defined|var|switch|0b|bit)\((.+?)\)')
 
 # for finding the start and end of an ifdef block:
 re_find_ifdefs = re.compile(r'((#ifdef )|(#ifndef ))(.*?)(#endif)', flags=re.DOTALL)
@@ -125,6 +125,10 @@ def replace_vars(content, definitions):
         var = i.group(2)
         if type=='bool': # python's bool rules
             text = str(proc_conditions(var, definitions, True))
+        elif type=='0b':
+            text = str(int(var, 2))
+        elif type=='bit':
+            text = str(1 << int(var))
         elif type=='switch': # like a ternary as #switch(var: resultiftrue, elseresult), or like #switch(cond1: result1, elseif2: result2, elseif3: result3, else: elseresult4)
             args = var.split(',')
             text = ''
