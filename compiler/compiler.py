@@ -43,6 +43,11 @@ def run(args):
     for p in profiles:
         profile_name = p.strip()
         profile = merged[profile_name]
+        assert(profile['source_path'])
+        assert(profile['out_dir'])
+        assert(profile['source_path'] != profile['out_dir'])
+        assert(profile['source_path'].endswith('/') or profile['source_path'].endswith('\\'))
+        assert(profile['out_dir'].endswith('/') or profile['out_dir'].endswith('\\'))
         if profile['verbose']:
             increase_loglevel(DebugLevels.DEBUG)
         else:
