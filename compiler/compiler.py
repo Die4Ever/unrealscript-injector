@@ -43,6 +43,8 @@ def run(args):
     for p in profiles:
         profile_name = p.strip()
         profile = merged[profile_name]
+        printHeader("using profile: "+profile_name+", settings:")
+        notice(repr(profile)+"\n")
         assert(profile['source_path'])
         assert(profile['out_dir'])
         assert(profile['source_path'] != profile['out_dir'])
@@ -52,8 +54,6 @@ def run(args):
             increase_loglevel(DebugLevels.DEBUG)
         else:
             increase_loglevel(DebugLevels.INFO)
-        printHeader("using profile: "+profile_name+", settings:")
-        notice(repr(profile)+"\n")
         if not run_profile(args, profile):
             return
 
