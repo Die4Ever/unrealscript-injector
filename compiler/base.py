@@ -134,7 +134,7 @@ def call(cmds, verbose=False, stdout=True, stderr=True):
             (outs, errs) = read(pipe, outs, errs, verbose)
             proc.poll()
         if proc.returncode != 0:
-            raise Exception("call didn't return 0: "+repr(cmds), outs, errs)
+            raise Exception("error code "+repr(proc.returncode)+": "+repr(cmds), outs, errs)
     except Exception as e:
         proc.kill()
         (outs, errs) = read(pipe, outs, errs, verbose)

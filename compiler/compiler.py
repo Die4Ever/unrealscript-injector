@@ -225,7 +225,7 @@ def compile(args, settings):
 
 def displayCompileError(e):
     if os.name != 'nt': # TODO, adjust filepath
-        print(e.args[0])
+        print(e)
         return
     errs = e.args[2]
     for line in errs.splitlines():
